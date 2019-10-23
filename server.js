@@ -2,7 +2,7 @@
 var express = require('express');
 var expressHandlebars = require('express-handlebars');
 var mongoose = require('mongoose');
-var routes = require('./routes/index.js');
+var routes = require('./routes');
 
 // If deployed, use the deployed database. Otherwise use the local mongoHeadlines database
 var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/newsScraping";
