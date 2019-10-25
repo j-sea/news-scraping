@@ -26,7 +26,10 @@ app.set('view engine', 'handlebars');
 app.use(routes);
 
 // Start up the database
-mongoose.connect(MONGODB_URI);
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
 // Start the server
 app.listen(PORT, function () {
