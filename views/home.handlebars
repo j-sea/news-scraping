@@ -1,7 +1,93 @@
-Hi, {{name}}
-
-<ul>
+<h3>News Scraper (from npr.org)</h3>
+<br>
+<button id="rescrape-button" class="waves-effect waves-light btn-small blue lighten-2">Scrape Articles Again</button>
+<ul id="articles">
+{{assign "articleId" "" }}
 {{#each articles}}
-<li><a href="{{this.url}}">{{this.headline}} - {{this.summary}}</a></li>
+	{{assign "articleId" this.id }}
+	<li>
+		<a href="{{this.url}}"><b>{{this.headline}}</b><br>{{this.summary}}</a>
+		<br>
+		<button class="waves-effect waves-light btn-small green lighten-2 notes-button" onClick="console.log(M);console.log(M.Modal);M.Modal.getInstance(document.getElementById('modal{{@index}}')).open();">Notes {{this.notes.length}} <i class="material-icons right">note</i></button>
+		<div id="modal{{@index}}" class="modal">
+			<div class="modal-content">
+				<h4>Notes for</h4>
+				<h6>{{this.headline}}</h6>
+				<hr>
+				<ul id="notes{{@index}}" class="collapsible">
+				{{#each this.notes}}
+					<li id="note{{this.id}}" class="note">
+						<div class="collapsible-header"><i class="material-icons">note</i>{{this.title}}</div>
+						<div class="collapsible-body">
+							<pre>{{this.body}}</pre>
+							<div class="note-delete-container">
+								<button data-article-id="{{get "articleId" }}" data-note-id="{{this.id}}" class="note-delete btn waves-effect waves-light red lighten-2">Remove Note <i class="material-icons right">delete</i></button>
+							</div>
+						</div>
+					</li>
+				{{else}}
+					<li class="note-empty">
+						No notes at the moment! Add some below!
+					</li>
+				{{/each}}
+				</ul>
+				<form data-article-id="{{this.id}}" data-article-index="{{@index}}">
+					<div class="input-field">
+						<input id="inputTitle{{@index}}" type="text">
+						<label for="inputTitle{{@index}}">Write your note title here</label>
+					</div>
+					<div class="input-field">
+						<textarea id="inputBody{{@index}}" class="materialize-textarea"></textarea>
+						<label for="inputBody{{@index}}">Write your note here</label>
+					</div>
+					<button type="submit" class="btn waves-effect green">Add Note <i class="material-icons right">send</i></button>
+				</form>
+			</div>
+			<div class="modal-footer grey lighten-2">
+				<a href="#!" class="modal-close waves-effect waves-green btn-flat">Done</a>
+			</div>
+		</div>
+	</li>
 {{/each}}
 </ul>
+<div id="loading-icon" class="preloader-wrapper big active">
+	<div class="spinner-layer spinner-blue">
+		<div class="circle-clipper left">
+			<div class="circle"></div>
+		</div><div class="gap-patch">
+			<div class="circle"></div>
+		</div><div class="circle-clipper right">
+			<div class="circle"></div>
+		</div>
+	</div>
+
+	<div class="spinner-layer spinner-red">
+		<div class="circle-clipper left">
+			<div class="circle"></div>
+		</div><div class="gap-patch">
+			<div class="circle"></div>
+		</div><div class="circle-clipper right">
+			<div class="circle"></div>
+		</div>
+	</div>
+
+	<div class="spinner-layer spinner-yellow">
+		<div class="circle-clipper left">
+			<div class="circle"></div>
+		</div><div class="gap-patch">
+			<div class="circle"></div>
+		</div><div class="circle-clipper right">
+			<div class="circle"></div>
+		</div>
+	</div>
+
+	<div class="spinner-layer spinner-green">
+		<div class="circle-clipper left">
+			<div class="circle"></div>
+		</div><div class="gap-patch">
+			<div class="circle"></div>
+		</div><div class="circle-clipper right">
+			<div class="circle"></div>
+		</div>
+	</div>
+</div>

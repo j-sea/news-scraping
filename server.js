@@ -19,7 +19,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Set up handlebars
-app.engine('handlebars', expressHandlebars({ defaultLayout: 'main' }));
+app.engine('handlebars', expressHandlebars({
+	defaultLayout: 'main',
+	helpers: {
+		partial: function (name) {
+			return name;
+		},
+		assign: function(varName, varValue, options) {
+			options.data.root[varName] = varValue;
+		},
+		get: function(varName, options) {
+				return options.data.root[varName]
+		},
+	}
+}));
 app.set('view engine', 'handlebars');
 
 // Set up the routes
@@ -27,11 +40,14 @@ app.use(routes);
 
 // Start up the database
 mongoose.connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+	useNewUrlParser: true,
+	useUnifiedTopology: true,
+
+	// Get rid of a deprecation warnings when using findOneAndUpdate, findOneAndDelete, etc.
+	useFindAndModify: false,
 });
 
 // Start the server
 app.listen(PORT, function () {
-    console.log(`Listening on port ${PORT}! Open link here: http://localhost:${PORT}`);
+	console.log(`Listening on port ${PORT}! Open link here: http://localhost:${PORT}`);
 });

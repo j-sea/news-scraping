@@ -1,0 +1,145 @@
+// Hide all functions and variables from global scope
+(()=>{
+	// Grab and store jQuery objects once for multiple usages
+	const jq = {
+		articles: $('#articles'),
+		rescrapeButton: $('#rescrape-button'),
+		clearAllButton: $('#clear-all-button'),
+		loadingIcon: $('#loading-icon'),
+	};
+
+	// Hide the loading icon
+	jq.loadingIcon.hide();
+
+	// This deletes all the articles and related notes in the database and clears the articles on the screen
+	function clearArticles () {
+		// Make an AJAX DELETE call on our local API to delete entries in the database and return the "then" function's promise for chaining off of
+		return $.ajax('/api/clear-articles', {
+			method: 'DELETE',
+		})
+		.done(function (result) {
+			// Clear the HTML related to the articles on the screen
+			jq.articles.empty();
+		})
+		.fail(function (err) {
+			// If there is an error, log it but don't throw it so normal execution of code can continue after we short-circuit out of this function
+			console.error(err);
+		})
+	}
+
+	// This scrapes all the articles from NPR and stores them in the database and displays the articles on the screen
+	function scrapeArticles () {
+		// Make an AJAX POST call on our local API to store entries in the database and return the "then" function's promise for chaining off of
+		return $.ajax('/api/scrape-articles', {
+			method: 'POST',
+		})
+		.done(function (results) {
+			// Refresh the page to show changes
+			window.location.reload(true);
+		})
+		.fail(function (err) {
+			// If there is an error, log it but don't throw it so normal execution of code can continue after we short-circuit out of this function
+			console.error(err);
+		})
+	}
+
+	// This adds notes to articles
+	function addNote (articleId, articleIndex, noteTitle, noteBody) {
+		// Run a POST request to change the note, using what's entered in the inputs
+		$.ajax({
+			method: "POST",
+			url: "/articles/" + articleId,
+			data: {
+				// Value taken from title input
+				title: noteTitle,
+				// Value taken from note textarea
+				body: noteBody,
+			}
+		})
+		// With that done
+		.done(function (data) {
+			// Refresh the page to show changes
+			window.location.reload(true);
+		})
+		.fail(function (error) {
+			console.error(error);
+		});
+
+		// Also, remove the values entered in the input and textarea for note entry
+		$('#inputTitle' + articleIndex).val('');
+		$('#inputBody' + articleIndex).val('');
+		M.textareaAutoResize( $('#inputBody' + articleIndex) );
+	}
+
+	function removeNote (articleId, noteId) {
+		// Run a DELETE request to remove the note
+		$.ajax({
+			method: 'DELETE',
+			url: `/articles/${articleId}/${noteId}`,
+		})
+		// With that done
+		.done(function (data) {
+			// Refresh the page to show changes
+			window.location.reload(true);
+		})
+		.fail(function (error) {
+			console.error(error);
+		});
+	}
+
+	// Attach a click event to the "Scrape Articles Again" button
+	jq.rescrapeButton.on('click', function () {
+		// Clear the articles and then...
+		clearArticles()
+		.done(function (result) {
+			// Show the waiting icon
+			jq.loadingIcon.show();
+
+			// Scrape all of the articles again
+			scrapeArticles();
+		})
+		.fail(function (err) {
+			// If there is an error, log it but don't throw it so normal execution of code can continue after we short-circuit out of this function
+			console.error(err);
+		});
+	});
+
+	// Attach a click event to the "Clear All Articles" button
+	jq.clearAllButton.on('click', function () {
+		// Clear the articles
+		clearArticles();
+	});
+
+	// Attach a submit event to all form elements (static and dynamic)
+	jq.articles.on('submit', 'form', function (jqueryEvent) {
+		// Prevent the form from submitting
+		jqueryEvent.preventDefault();
+
+		// Grab the article index which is used to target the relavant DOM objects
+		const articleIndex = $(jqueryEvent.target).attr('data-article-index');
+
+		// Grab the article id which is used to link the note to the article
+		const articleId = $(jqueryEvent.target).attr('data-article-id');
+
+		// Grab the note title
+		const noteTitle = $('#inputTitle' + articleIndex).val();
+
+		// Grab the note body
+		const noteBody = $('#inputBody' + articleIndex).val();
+
+		addNote(articleId, articleIndex, noteTitle, noteBody);
+	});
+
+	// Attach click event to all .note-delete buttons
+	jq.articles.on('click', '.note-delete', function (jqueryEvent) {
+		// Prevent the click from doing anything
+		jqueryEvent.preventDefault();
+
+		// Grab the IDs we'll need to delete the note with
+		const articleId = $(jqueryEvent.target).attr('data-article-id');
+		const noteId = $(jqueryEvent.target).attr('data-note-id');
+
+		// Remove the note from the database
+		removeNote(articleId, noteId);
+	})
+})();
